@@ -2,6 +2,8 @@ mod balances;
 mod system;
 mod support;
 
+use types::Balance;
+
 use crate::support::Dispatch;
 
 mod types {
@@ -17,7 +19,7 @@ mod types {
 }
 
 pub enum RuntimeCall {
-	BalancesTransfer { to: types::AccountId, amount: types::Balance },
+	Balances(balances::Call<Runtime>),
 }
 
 #[derive(Debug)]
@@ -78,9 +80,9 @@ impl crate::support::Dispatch for Runtime {
 		runtime_call: Self::Call,
 	) -> support::DispatchResult {
 		match runtime_call {
-			RuntimeCall::BalancesTransfer { to, amount } => {
-				self.balances.transfer(caller, to, amount)?;
-			}
+			RuntimeCall::Balances(call) => {
+				self.balances.dispatch(caller, call)?;
+			},
 		}
 		Ok(())
 	}
@@ -100,11 +102,11 @@ fn main() {
 		extrinsics: vec![
 			support::Extrinsic {
 				caller: jae.clone(),
-				call: RuntimeCall::BalancesTransfer { to: foo.clone(), amount: 11 },
+				call: RuntimeCall::Balances(balances::Call::Transfer { to: (foo.clone()), amount: (11) })
 			},
 			support::Extrinsic {
 				caller: jae.clone(),
-				call: RuntimeCall::BalancesTransfer { to: bar.clone(), amount: 10 },
+				call: RuntimeCall::Balances(balances::Call::Transfer { to: (bar.clone()), amount: (11) })
 			},
 		],
 	};
@@ -114,11 +116,11 @@ fn main() {
 		extrinsics: vec![
 			support::Extrinsic {
 				caller: jae.clone(),
-				call: RuntimeCall::BalancesTransfer { to: foo.clone(), amount: 11 },
+				call: RuntimeCall::Balances(balances::Call::Transfer { to: (foo.clone()), amount: (11) })
 			},
 			support::Extrinsic {
 				caller: jae.clone(),
-				call: RuntimeCall::BalancesTransfer { to: bar.clone(), amount: 10 },
+				call: RuntimeCall::Balances(balances::Call::Transfer { to: (bar.clone()), amount: (11) })
 			},
 		],
 	};
