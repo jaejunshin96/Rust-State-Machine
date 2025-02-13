@@ -95,24 +95,56 @@ fn main() {
 
 	runtime.balances.set_balance(&jae, 100);
 
-	runtime.system.inc_block_number();
-	assert_eq!(runtime.system.block_number(), 1);
+	let block_1 = types::Block {
+		header: support::Header { block_number: 1 },
+		extrinsics: vec![
+			support::Extrinsic {
+				caller: jae.clone(),
+				call: RuntimeCall::BalancesTransfer { to: foo.clone(), amount: 11 },
+			},
+			support::Extrinsic {
+				caller: jae.clone(),
+				call: RuntimeCall::BalancesTransfer { to: bar.clone(), amount: 10 },
+			},
+		],
+	};
 
-	runtime.system.inc_nonce(&jae);
-	let result = runtime.balances.transfer(jae.clone(), foo.clone(), 30);
-	match result {
-		Ok(_) => {
-			println!("Transfer successful");
-		},
-		Err(e) => {
-			println!("Error: {}", e);
-		}
-	}
+	let block_2 = types::Block {
+		header: support::Header { block_number: 2 },
+		extrinsics: vec![
+			support::Extrinsic {
+				caller: jae.clone(),
+				call: RuntimeCall::BalancesTransfer { to: foo.clone(), amount: 11 },
+			},
+			support::Extrinsic {
+				caller: jae.clone(),
+				call: RuntimeCall::BalancesTransfer { to: bar.clone(), amount: 10 },
+			},
+		],
+	};
 
-	runtime.system.inc_nonce(&jae);
-	let _ = runtime.balances
-		.transfer(jae.clone(), bar.clone() , 20)
-		.map_err(|e| println!("Error: {}", e));
+	runtime.execute_block(block_1).expect("invalid block");
+	runtime.execute_block(block_2).expect("invalid block");
 
-	println!("{:#?}", runtime);
+	print!("{:#?}", runtime);
+	//runtime.system.inc_block_number();
+	//assert_eq!(runtime.system.block_number(), 1);
+
+	//runtime.system.inc_nonce(&jae);
+	//let result = runtime.balances.transfer(jae.clone(), foo.clone(), 30);
+	//match result {
+	//	Ok(_) => {
+	//		println!("Transfer successful");
+	//	},
+	//	Err(e) => {
+	//		println!("Error: {}", e);
+	//	}
+	//}
+
+	//runtime.system.inc_nonce(&jae);
+	//let _ = runtime.balances
+	//	.transfer(jae.clone(), bar.clone() , 20)
+	//	.map_err(|e| println!("Error: {}", e));
+
+	//println!("{:#?}", runtime);
 }
