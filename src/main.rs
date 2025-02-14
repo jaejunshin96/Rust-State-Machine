@@ -3,6 +3,8 @@ mod system;
 mod support;
 mod proof_of_existence;
 
+use std::vec;
+
 use crate::support::Dispatch;
 
 mod types {
@@ -15,34 +17,42 @@ mod types {
 	pub type Extrinsic = support::Extrinsic<AccountId, crate::RuntimeCall>;
 	pub type Header = support::Header<BlockNumber>;
 	pub type Block = support::Block<Header, Extrinsic>;
+	pub type Content = &'static str;
 }
 
 pub enum RuntimeCall {
 	Balances(balances::Call<Runtime>),
+	ProofOfExistence(proof_of_existence::Call<Runtime>),
 }
 
 #[derive(Debug)]
 pub struct Runtime {
 	system: system::Pallet<Self>,
 	balances: balances::Pallet<Self>,
+	proof_of_existence: proof_of_existence::Pallet<Self>,
 }
 
 impl system::Config for Runtime {
-	type AccountId = String;
-	type BlockNumber = u32;
-	type Nonce = u32;
+	type AccountId = types::AccountId;
+	type BlockNumber = types::BlockNumber;
+	type Nonce = types::Nonce;
 }
 
 impl balances::Config for Runtime {
 	//type AccountId = String;
-	type Balance = u128;
+	type Balance = types::Balance;
+}
+
+impl proof_of_existence::Config for Runtime {
+	type Content = types::Content;
 }
 
 impl Runtime {
 	fn new() -> Self {
 		Self {
 			system: system::Pallet::new(),
-			balances: balances::Pallet::new()
+			balances: balances::Pallet::new(),
+			proof_of_existence: proof_of_existence::Pallet::new()
 		}
 	}
 	// Execute a block of extrinsics. Increments the block number.
@@ -82,6 +92,9 @@ impl crate::support::Dispatch for Runtime {
 			RuntimeCall::Balances(call) => {
 				self.balances.dispatch(caller, call)?;
 			},
+			RuntimeCall::ProofOfExistence(call) => {
+				self.proof_of_existence.dispatch(caller, call)?;
+			}
 		}
 		Ok(())
 	}
@@ -115,37 +128,21 @@ fn main() {
 		extrinsics: vec![
 			support::Extrinsic {
 				caller: jae.clone(),
-				call: RuntimeCall::Balances(balances::Call::Transfer { to: (foo.clone()), amount: (11) })
+				call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::CreateClaim { claim: "jaeClaim" })
+			},
+			support::Extrinsic {
+				caller: foo.clone(),
+				call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::CreateClaim { claim: "fooClaim" })
 			},
 			support::Extrinsic {
 				caller: jae.clone(),
-				call: RuntimeCall::Balances(balances::Call::Transfer { to: (bar.clone()), amount: (11) })
+				call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::RevokeClaim { claim: "randomClaim" })
 			},
-		],
+		]
 	};
 
 	runtime.execute_block(block_1).expect("invalid block");
 	runtime.execute_block(block_2).expect("invalid block");
 
 	print!("{:#?}", runtime);
-	//runtime.system.inc_block_number();
-	//assert_eq!(runtime.system.block_number(), 1);
-
-	//runtime.system.inc_nonce(&jae);
-	//let result = runtime.balances.transfer(jae.clone(), foo.clone(), 30);
-	//match result {
-	//	Ok(_) => {
-	//		println!("Transfer successful");
-	//	},
-	//	Err(e) => {
-	//		println!("Error: {}", e);
-	//	}
-	//}
-
-	//runtime.system.inc_nonce(&jae);
-	//let _ = runtime.balances
-	//	.transfer(jae.clone(), bar.clone() , 20)
-	//	.map_err(|e| println!("Error: {}", e));
-
-	//println!("{:#?}", runtime);
 }
