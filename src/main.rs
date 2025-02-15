@@ -128,15 +128,15 @@ fn main() {
 		extrinsics: vec![
 			support::Extrinsic {
 				caller: jae.clone(),
-				call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::CreateClaim { claim: "jaeClaim" })
+				call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::create_claim { claim: "jaeClaim" })
 			},
 			support::Extrinsic {
 				caller: foo.clone(),
-				call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::CreateClaim { claim: "fooClaim" })
+				call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::create_claim { claim: "fooClaim" })
 			},
 			support::Extrinsic {
 				caller: jae.clone(),
-				call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::RevokeClaim { claim: "randomClaim" })
+				call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::revoke_claim { claim: "randomClaim" })
 			},
 		]
 	};
